@@ -181,6 +181,12 @@ format string.
 - **Different wording for Claude:** edit the `additionalContext` string in
   `timestamp-context.sh`.
 
+- **Display-only mode (suppress context injection):** if you want the on-screen
+  `[HH:MM:SS]` marker but don't want the time injected into Claude's context,
+  set `CLAUDE_TIMESTAMPS_INJECT_CONTEXT=false` in your shell profile (`.bashrc`,
+  `.zshrc`, etc.). The `MessageDisplay` timestamp is unaffected; only the
+  `UserPromptSubmit` context is suppressed.
+
 > **Note on timezones:** the scripts use the shell's `date` command, which respects
 > your local timezone. They intentionally avoid `jq`'s `now | strftime`, which renders
 > in **UTC** and would show the wrong time.

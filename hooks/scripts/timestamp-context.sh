@@ -16,6 +16,9 @@ set -euo pipefail
 # Fail safe: if jq is unavailable, add no context rather than erroring the prompt.
 command -v jq >/dev/null 2>&1 || exit 0
 
+# Opt out of model-facing context injection (display-only mode).
+[ "${CLAUDE_TIMESTAMPS_INJECT_CONTEXT:-true}" = "false" ] && exit 0
+
 ts="$(date '+%H:%M:%S %Z')"
 jq -n --arg ts "$ts" \
   '{hookSpecificOutput: {hookEventName: "UserPromptSubmit", additionalContext: ("Message sent at local time " + $ts)}}'
