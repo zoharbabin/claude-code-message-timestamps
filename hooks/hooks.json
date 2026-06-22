@@ -5,8 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/scripts/dependency-check.sh"],
+            "command": "bash \"$CLAUDE_PLUGIN_ROOT/hooks/scripts/dependency-check.sh\"",
             "timeout": 5
           }
         ]
@@ -17,8 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/scripts/timestamp-context.sh"],
+            "command": "bash \"$CLAUDE_PLUGIN_ROOT/hooks/scripts/timestamp-context.sh\"",
             "timeout": 5
           }
         ]
@@ -29,8 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/scripts/timestamp-display.sh"],
+            "command": "bash \"$CLAUDE_PLUGIN_ROOT/hooks/scripts/timestamp-display.sh\"",
             "timeout": 10
           }
         ]
