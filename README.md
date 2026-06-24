@@ -172,14 +172,25 @@ claude-code-message-timestamps/
 
 ## Customize
 
-The format lives in the scripts in `hooks/scripts/`. They use the standard `date`
-format string.
+### Time format (`CLAUDE_TIMESTAMPS_FORMAT`)
 
-- **Add the date too:** change `+%H:%M:%S` to `+%Y-%m-%d %H:%M:%S` in
-  `timestamp-display.sh`.
-- **12-hour clock:** use `+%I:%M:%S %p`.
-- **Different wording for Claude:** edit the `additionalContext` string in
-  `timestamp-context.sh`.
+Set the `CLAUDE_TIMESTAMPS_FORMAT` environment variable to any standard
+[`date`](https://man7.org/linux/man-pages/man1/date.1.html) format string. It
+applies to both the on-screen marker and the time injected into Claude's context,
+and defaults to `%H:%M:%S`. Set it once in your shell profile (`.bashrc`,
+`.zshrc`, …) or in `.claude/settings.json`:
+
+```json
+{ "env": { "CLAUDE_TIMESTAMPS_FORMAT": "%H:%M" } }
+```
+
+- **No seconds:** `%H:%M`
+- **Add the date too:** `%Y-%m-%d %H:%M:%S`
+- **12-hour clock:** `%I:%M %p`
+
+The model-facing context always appends the timezone (`%Z`) on top of this
+format, so Claude keeps the offset. To change the wording around the time Claude
+sees, edit the `additionalContext` string in `timestamp-context.sh`.
 
 - **Display-only mode (suppress context injection):** if you want the on-screen
   `[HH:MM:SS]` marker but don't want the time injected into Claude's context,

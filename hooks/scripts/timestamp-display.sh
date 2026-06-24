@@ -20,7 +20,10 @@ set -euo pipefail
 # displays the original message text unchanged — never swallow assistant output.
 command -v jq >/dev/null 2>&1 || exit 0
 
-ts="$(date '+%H:%M:%S')"
+# Format override: CLAUDE_TIMESTAMPS_FORMAT is any `date` format string
+# (default %H:%M:%S). Lets users drop seconds, switch to a 12-hour clock, etc.
+# without editing this file.
+ts="$(date "+${CLAUDE_TIMESTAMPS_FORMAT:-%H:%M:%S}")"
 jq --arg ts "$ts" '
   if .index == 0 then
     {hookSpecificOutput: {hookEventName: "MessageDisplay", displayContent: ("[" + $ts + "] " + .delta)}}
