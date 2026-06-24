@@ -170,22 +170,46 @@ claude-code-message-timestamps/
 
 ---
 
-## Customize
+## Configuration
 
-The format lives in the scripts in `hooks/scripts/`. They use the standard `date`
-format string.
+Every part of the format is controlled by optional environment variables. Unset
+means the defaults below — so doing nothing keeps the original behavior (with one
+exception: the on-screen separator defaults to a newline, putting the marker on
+its own line above each reply).
 
-- **Add the date too:** change `+%H:%M:%S` to `+%Y-%m-%d %H:%M:%S` in
-  `timestamp-display.sh`.
-- **12-hour clock:** use `+%I:%M:%S %p`.
-- **Different wording for Claude:** edit the `additionalContext` string in
-  `timestamp-context.sh`.
+| Variable | Default | Controls |
+| --- | --- | --- |
+| `CLAUDE_TIMESTAMPS_DISPLAY_FORMAT` | `[%H:%M:%S]` | `date` format for the on-screen marker. The `[ ]` are part of the format string — change or drop them freely. |
+| `CLAUDE_TIMESTAMPS_SEPARATOR` | newline | What goes between the marker and the message. Escapes like `\n` and `\t` are interpreted, so you can set them in JSON. |
+| `CLAUDE_TIMESTAMPS_CONTEXT_FORMAT` | `%H:%M:%S %Z` | `date` format for the time injected into Claude's context. |
+| `CLAUDE_TIMESTAMPS_CONTEXT_PREFIX` | `Message sent at local time ` | Wording placed before that time. |
+| `CLAUDE_TIMESTAMPS_INJECT_CONTEXT` | `true` | Set to `false` for display-only mode (no time in Claude's context). |
 
-- **Display-only mode (suppress context injection):** if you want the on-screen
-  `[HH:MM:SS]` marker but don't want the time injected into Claude's context,
-  set `CLAUDE_TIMESTAMPS_INJECT_CONTEXT=false` in your shell profile (`.bashrc`,
-  `.zshrc`, etc.). The `MessageDisplay` timestamp is unaffected; only the
-  `UserPromptSubmit` context is suppressed.
+All five use the standard [`date`](https://man7.org/linux/man-pages/man1/date.1.html)
+format string. A few examples:
+
+- **Marker on its own line (default):** leave `CLAUDE_TIMESTAMPS_SEPARATOR` unset.
+- **Marker inline with the reply:** `CLAUDE_TIMESTAMPS_SEPARATOR=" "`.
+- **Add the date:** `CLAUDE_TIMESTAMPS_DISPLAY_FORMAT="[%Y-%m-%d %H:%M:%S]"`.
+- **12-hour clock:** `CLAUDE_TIMESTAMPS_DISPLAY_FORMAT="[%I:%M:%S %p]"`.
+- **Shorter wording for Claude:** `CLAUDE_TIMESTAMPS_CONTEXT_PREFIX="time: "`.
+
+### Setting them in `settings.json`
+
+Put them in the `env` block of `~/.claude/settings.json` so they apply to every
+session:
+
+```json
+{
+  "env": {
+    "CLAUDE_TIMESTAMPS_SEPARATOR": "\n",
+    "CLAUDE_TIMESTAMPS_DISPLAY_FORMAT": "[%H:%M:%S]",
+    "CLAUDE_TIMESTAMPS_CONTEXT_PREFIX": "Sent at "
+  }
+}
+```
+
+(You can also export them from your shell profile — `.bashrc`, `.zshrc`, etc.)
 
 > **Note on timezones:** the scripts use the shell's `date` command, which respects
 > your local timezone. They intentionally avoid `jq`'s `now | strftime`, which renders
@@ -195,9 +219,29 @@ format string.
 
 ## Prefer not to install a plugin?
 
-You can paste the same hooks into `~/.claude/settings.json` by hand under a `"hooks"`
-key. The plugin is just a cleaner, updatable, no-clobber way to do it — and it won't
-overwrite hooks you already have.
+The `MessageDisplay` and `UserPromptSubmit` events are delivered to plain
+`settings.json` hooks too — you don't need the plugin wrapper. Copy
+`hooks/scripts/` somewhere stable (say `~/.claude/scripts/`) and register them in
+`~/.claude/settings.json`. The same `CLAUDE_TIMESTAMPS_*` env vars apply:
+
+```json
+{
+  "env": {
+    "CLAUDE_TIMESTAMPS_SEPARATOR": "\n"
+  },
+  "hooks": {
+    "MessageDisplay": [
+      { "hooks": [ { "type": "command", "command": "bash ~/.claude/scripts/timestamp-display.sh", "timeout": 10 } ] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "bash ~/.claude/scripts/timestamp-context.sh", "timeout": 5 } ] }
+    ]
+  }
+}
+```
+
+The plugin is just a cleaner, updatable, no-clobber way to do the same thing — and
+it won't overwrite hooks you already have.
 
 ---
 
