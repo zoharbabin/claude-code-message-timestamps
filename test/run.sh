@@ -62,5 +62,26 @@ matches "display backslash-n sep -> newline" \
 out="$(printf '{"index":0,"delta":"hi"}' | run_no_jq "$SCRIPTS/timestamp-display.sh")"
 check "display fail-safe no-jq = empty" "" "$out"
 
+ac() { jq -r '.hookSpecificOutput.additionalContext'; }  # extract additionalContext
+
+# --- context: defaults (prefix + HH:MM:SS TZ) ---
+out="$(printf '{}' | bash "$SCRIPTS/timestamp-context.sh" | ac)"
+matches "context default prefix + time" \
+  "^Message sent at local time [0-9][0-9]:[0-9][0-9]:[0-9][0-9] .+$" "$out"
+
+# --- context: custom prefix + format ---
+out="$(printf '{}' | \
+  CLAUDE_TIMESTAMPS_CONTEXT_PREFIX="t=" CLAUDE_TIMESTAMPS_CONTEXT_FORMAT="%H" \
+  bash "$SCRIPTS/timestamp-context.sh" | ac)"
+matches "context custom prefix + format" "^t=[0-9][0-9]$" "$out"
+
+# --- context: INJECT_CONTEXT=false suppresses all output ---
+out="$(printf '{}' | CLAUDE_TIMESTAMPS_INJECT_CONTEXT=false bash "$SCRIPTS/timestamp-context.sh")"
+check "context inject=false = empty" "" "$out"
+
+# --- context: fail-safe when jq is absent ---
+out="$(printf '{}' | run_no_jq "$SCRIPTS/timestamp-context.sh")"
+check "context fail-safe no-jq = empty" "" "$out"
+
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
