@@ -1,7 +1,7 @@
 {
   "name": "message-timestamps",
   "displayName": "Message Timestamps",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Shows the local time on every message and tells Claude when each prompt was sent — so you can scan a conversation, see how long things took, and reference earlier blocks.",
   "author": {
     "name": "Zohar Babin",

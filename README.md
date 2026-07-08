@@ -173,7 +173,9 @@ claude-code-message-timestamps/
 │   └── scripts/
 │       ├── timestamp-context.sh   # UserPromptSubmit → tells Claude the time
 │       ├── timestamp-display.sh   # MessageDisplay → shows you the time
-│       └── dependency-check.sh    # SessionStart → warns once if jq is missing
+│       ├── dependency-check.sh    # SessionStart → warns once if jq is missing
+│       └── lib/
+│           └── resolve-tz.sh      # maps CLAUDE_TIMESTAMPS_TZ → IANA zone
 └── README.md
 ```
 
@@ -200,6 +202,24 @@ and defaults to `%H:%M:%S`. Set it once in your shell profile (`.bashrc`,
 The model-facing context always appends the timezone (`%Z`) on top of this
 format, so Claude keeps the offset. To change the wording around the time Claude
 sees, edit the `additionalContext` string in `timestamp-context.sh`.
+
+### Pin a timezone (`CLAUDE_TIMESTAMPS_TZ`)
+
+By default, timestamps use your machine's local timezone. Set
+`CLAUDE_TIMESTAMPS_TZ` to render in a specific zone instead — handy if your
+machine's clock is on one timezone but you want to reason about another:
+
+```bash
+CLAUDE_TIMESTAMPS_TZ=KST claude          # -> Asia/Seoul
+CLAUDE_TIMESTAMPS_TZ=PST claude          # -> America/Los_Angeles
+CLAUDE_TIMESTAMPS_TZ=Asia/Tokyo claude   # any IANA zone name also works
+```
+
+Common abbreviations (`KST`, `JST`, `IST`, `PST`, `EST`, `CST`, `MST`, `GMT`,
+`CET`, `AEST`, …) are mapped to full IANA zones in
+`hooks/scripts/lib/resolve-tz.sh`; anything else is passed straight to `date`
+as-is, so any IANA name works too. It composes with `CLAUDE_TIMESTAMPS_FORMAT`
+— include `%Z` in your format if you want the zone abbreviation to show.
 
 - **Display-only mode (suppress context injection):** if you want the on-screen
   `[HH:MM:SS]` marker but don't want the time injected into Claude's context,

@@ -12,13 +12,21 @@
 # Invoked as `bash <this script>` (see hooks.json), so it does not depend on the
 # executable bit being preserved across clones/zips/Windows.
 #
-# Time is computed with `date` (local TZ). We do NOT use jq's `now|strftime`,
-# which renders in UTC.
+# Time is computed with `date` (local TZ, or a pinned one — see
+# CLAUDE_TIMESTAMPS_TZ below). We do NOT use jq's `now|strftime`, which
+# renders in UTC.
 set -euo pipefail
 
 # Fail safe: if jq is unavailable, emit nothing and exit 0. Claude Code then
 # displays the original message text unchanged — never swallow assistant output.
 command -v jq >/dev/null 2>&1 || exit 0
+
+# Pin a timezone with CLAUDE_TIMESTAMPS_TZ (e.g. "KST", "America/Denver").
+# Unset = machine local time, same as before.
+if [ -n "${CLAUDE_TIMESTAMPS_TZ:-}" ]; then
+  source "$(dirname "${BASH_SOURCE[0]}")/lib/resolve-tz.sh"
+  export TZ="$(resolve_tz "$CLAUDE_TIMESTAMPS_TZ")"
+fi
 
 # Format override: CLAUDE_TIMESTAMPS_FORMAT is any `date` format string
 # (default %H:%M:%S). Lets users drop seconds, switch to a 12-hour clock, etc.
