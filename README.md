@@ -94,9 +94,18 @@ Here's exactly how that plays out:
 
 **Why it works without fuss:**
 
-- **No executable-bit dependency.** The hooks are invoked as `bash <script>` (Claude
-  Code's "exec form"), so they run even when a clone, a ZIP download, or
-  `git config core.fileMode=false` drops the `+x` permission — common on Windows.
+- **No executable-bit dependency.** The hooks are invoked as `bash <script>`, so they
+  run even when a clone, a ZIP download, or `git config core.fileMode=false` drops the
+  `+x` permission — common on Windows.
+- **Windows path safety.** On Windows, `CLAUDE_PLUGIN_ROOT` is a backslash path
+  (`C:\Users\…`). The hooks use the **shell form** with the **unbraced**, double-quoted
+  variable — `bash "$CLAUDE_PLUGIN_ROOT/hooks/scripts/…sh"`. Claude Code substitutes the
+  *braced* `${CLAUDE_PLUGIN_ROOT}` itself (and its backslashes get eaten while the command
+  is assembled), but it leaves the *unbraced* `$CLAUDE_PLUGIN_ROOT` for bash to expand at
+  runtime, where the backslashes survive intact. This is also safer than substituting the
+  path in: bash does not re-scan the result of a variable expansion, so a path containing
+  shell metacharacters can't trigger command substitution. Inert on macOS/Linux and
+  space-safe everywhere.
 - **Local time, not UTC.** Time comes from your shell's `date`, so it matches your wall
   clock. (The scripts deliberately avoid `jq`'s `now | strftime`, which is UTC-only.)
 - **Graceful, explained degradation.** Missing `jq` never breaks a message or errors the
