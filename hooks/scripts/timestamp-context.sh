@@ -19,6 +19,9 @@ command -v jq >/dev/null 2>&1 || exit 0
 # Opt out of model-facing context injection (display-only mode).
 [ "${CLAUDE_TIMESTAMPS_INJECT_CONTEXT:-true}" = "false" ] && exit 0
 
-ts="$(date '+%H:%M:%S %Z')"
+# Format override: CLAUDE_TIMESTAMPS_FORMAT is any `date` format string
+# (default %H:%M:%S). The timezone (%Z) is always appended so the model keeps
+# the offset regardless of the chosen format.
+ts="$(date "+${CLAUDE_TIMESTAMPS_FORMAT:-%H:%M:%S} %Z")"
 jq -n --arg ts "$ts" \
   '{hookSpecificOutput: {hookEventName: "UserPromptSubmit", additionalContext: ("Message sent at local time " + $ts)}}'
