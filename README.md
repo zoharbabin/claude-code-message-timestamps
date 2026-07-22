@@ -203,6 +203,32 @@ The model-facing context always appends the timezone (`%Z`) on top of this
 format, so Claude keeps the offset. To change the wording around the time Claude
 sees, edit the `additionalContext` string in `timestamp-context.sh`.
 
+### Color the timestamp (`CLAUDE_TIMESTAMPS_COLOR`)
+
+By default the `[HH:MM:SS]` marker inherits your terminal's normal text color. Set
+`CLAUDE_TIMESTAMPS_COLOR` to any [SGR](https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters)
+color code to tint it, so the marker reads as chrome and stays out of the way of the
+message text:
+
+```bash
+CLAUDE_TIMESTAMPS_COLOR=2 claude        # dim, a good default
+CLAUDE_TIMESTAMPS_COLOR=90 claude       # bright black / gray
+CLAUDE_TIMESTAMPS_COLOR="1;36" claude   # bold cyan
+```
+
+Or set it once in `.claude/settings.json`:
+
+```json
+{ "env": { "CLAUDE_TIMESTAMPS_COLOR": "2" } }
+```
+
+The value is passed through verbatim as the parameters between `ESC[` and `m`, so
+anything your terminal understands works, including `38;5;N` (256-color) and
+`38;2;R;G;B` (truecolor). Leaving it unset or empty keeps the marker uncolored, exactly
+as before. Setting `NO_COLOR` (see [no-color.org](https://no-color.org)) suppresses the
+color regardless, so the marker degrades cleanly on terminals and pipelines that do not
+want ANSI.
+
 ### Pin a timezone (`CLAUDE_TIMESTAMPS_TZ`)
 
 By default, timestamps use your machine's local timezone. Set

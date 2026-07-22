@@ -32,9 +32,24 @@ fi
 # (default %H:%M:%S). Lets users drop seconds, switch to a 12-hour clock, etc.
 # without editing this file.
 ts="$(date "+${CLAUDE_TIMESTAMPS_FORMAT:-%H:%M:%S}")"
-jq --arg ts "$ts" '
+
+# Optional color. CLAUDE_TIMESTAMPS_COLOR holds SGR parameters (e.g. 2 for dim,
+# 90 for gray, "1;36" for bold cyan). Unset or empty means no color, so the marker
+# stays byte-for-byte identical to before. A set NO_COLOR always wins, per the
+# convention at no-color.org (presence disables color regardless of its value).
+#
+# The reset (ESC[0m) goes after the trailing space, not right after "]". Claude
+# Code's renderer drops the color on whichever character precedes the reset, so
+# letting it eat the space keeps every digit and bracket colored.
+marker="[${ts}] "
+if [ -n "${CLAUDE_TIMESTAMPS_COLOR:-}" ] && [ -z "${NO_COLOR+set}" ]; then
+  esc="$(printf '\033')"
+  marker="${esc}[${CLAUDE_TIMESTAMPS_COLOR}m${marker}${esc}[0m"
+fi
+
+jq --arg marker "$marker" '
   if .index == 0 then
-    {hookSpecificOutput: {hookEventName: "MessageDisplay", displayContent: ("[" + $ts + "] " + .delta)}}
+    {hookSpecificOutput: {hookEventName: "MessageDisplay", displayContent: ($marker + .delta)}}
   else
     {hookSpecificOutput: {hookEventName: "MessageDisplay", displayContent: .delta}}
   end
